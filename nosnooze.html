@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnoozeProof</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #6d28d9;
+            --primary-light: #8b5cf6;
+            --secondary: #ec4899;
+            --secondary-light: #f472b6;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --bg: #f9fafb;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #ddd6fe, #e0e7ff);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.8s ease;
+        }
+        
+        .body-awake {
+            background: linear-gradient(135deg, #c4b5fd, #a5b4fc);
+        }
+        
+        .body-sleep {
+            background: linear-gradient(135deg, #ddd6fe, #bfdbfe);
+        }
+        
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 32px;
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .button-container {
+            margin: 35px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 220px;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 0.5px;
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .time-counter {
+            font-size: 54px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 25px 0;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .time-counter.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .status {
+            position: absolute;
+            bottom: 18px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-light);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .status.show {
+            opacity: 1;
+        }
+        
+        /* Background elements */
+        .bg-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.4;
+            filter: blur(40px);
+            transition: all 0.8s ease;
+            z-index: -1;
+        }
+        
+        .bg-1 {
+            background: var(--primary-light);
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+        }
+        
+        .bg-2 {
+            background: var(--secondary-light);
+            width: 250px;
+            height: 250px;
+            bottom: -80px;
+            right: -60px;
+        }
+        
+        .bg-3 {
+            background: var(--primary);
+            width: 180px;
+            height: 180px;
+            bottom: 100px;
+            left: -80px;
+            opacity: 0;
+        }
+        
+        .bg-4 {
+            background: var(--secondary);
+            width: 150px;
+            height: 150px;
+            top: 80px;
+            right: -40px;
+            opacity: 0;
+        }
+        
+        .body-awake .bg-3,
+        .body-awake .bg-4 {
+            opacity: 0.3;
+        }
+        
+        .body-awake .bg-1 {
+            transform: translateX(40px) translateY(40px);
+        }
+        
+        .body-awake .bg-2 {
+            transform: translateX(-40px) translateY(-40px);
+        }
+        
+        /* Pulse animation */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="bg-element bg-1"></div>
+    <div class="bg-element bg-2"></div>
+    <div class="bg-element bg-3"></div>
+    <div class="bg-element bg-4"></div>
+    
+    <div class="container">
+        <h1 class="logo">SnoozeProof</h1>
+        
+        <div id="timeCounter" class="time-counter">00:00:00</div>
+        
+        <div class="button-container">
+            <button id="startButton" class="btn btn-primary">Don't Sleep</button>
+            <button id="stopButton" class="btn btn-secondary" disabled>Sleep Tight</button>
+        </div>
+        
+        <div id="statusIndicator" class="status">Ready when you are</div>
+    </div>
+
+    <script>
+        // Create variables
+        let audioContext;
+        let audioSource;
+        let videoElement;
+        let startTime = null;
+        let timerInterval;
+        let keepAwakeInterval;
+        const statusIndicator = document.getElementById('statusIndicator');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const timeCounter = document.getElementById('timeCounter');
+        const body = document.body;
+        
+        // Create a hidden video element for screen wake
+        function createHiddenVideo() {
+            if (!videoElement) {
+                videoElement = document.createElement('video');
+                videoElement.setAttribute('playsinline', '');
+                videoElement.setAttribute('muted', '');
+                videoElement.setAttribute('loop', '');
+                videoElement.style.position = 'absolute';
+                videoElement.style.width = '1px';
+                videoElement.style.height = '1px';
+                videoElement.style.opacity = '0.01';
+                
+                // Create a simple canvas as video source
+                const canvas = document.createElement('canvas');
+                canvas.width = 2;
+                canvas.height = 2;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, 2, 2);
+                
+                // Convert canvas to video stream
+                const stream = canvas.captureStream(1); // 1 FPS
+                videoElement.srcObject = stream;
+                
+                document.body.appendChild(videoElement);
+            }
+            
+            return videoElement;
+        }
+        
+        // Use multiple methods to keep screen awake
+        function keepScreenAwake() {
+            // Method 1: Audio Context
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                const oscillator = audioContext.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 200; // Use a low but audible frequency (will be muted)
+                
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = 0.0001; // Nearly silent
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                audioSource = oscillator;
+            } catch (error) {
+                console.error('Audio context error:', error);
+            }
+            
+            // Method 2: Video Playback
+            try {
+                const video = createHiddenVideo();
+                video.play().catch(err => console.error('Video play error:', err));
+            } catch (error) {
+                console.error('Video element error:', error);
+            }
+            
+            // Method 3: Regular interaction simulation
+            keepAwakeInterval = setInterval(() => {
+                // Simulate user interaction by slightly modifying the DOM
+                const tempEl = document.createElement('div');
+                document.body.appendChild(tempEl);
+                setTimeout(() => document.body.removeChild(tempEl), 50);
+                
+                // If audio context was suspended, resume it
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // If video is paused, try to play it
+                if (videoElement && videoElement.paused) {
+                    videoElement.play().catch(() => {});
+                }
+                
+                // Force a tiny layout recalculation
+                document.body.style.padding = document.body.style.padding === '20px' ? '20.001px' : '20px';
+            }, 10000); // Every 10 seconds
+            
+            // Update UI
+            statusIndicator.textContent = 'Staying awake now';
+            statusIndicator.classList.add('show');
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            body.classList.add('body-awake');
+            body.classList.remove('body-sleep');
+            timeCounter.classList.add('show', 'pulse');
+            
+            // Start timer
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            return true;
+        }
+        
+        // Stop all wake methods
+        function stopKeepingAwake() {
+            // Stop audio
+            if (audioSource) {
+                audioSource.stop();
+                audioSource = null;
+            }
+            
+            // Stop video
+            if (videoElement) {
+                videoElement.pause();
+                try {
+                    videoElement.srcObject.getTracks().forEach(track => track.stop());
+                } catch (e) {}
+            }
+            
+            // Clear interaction interval
+            if (keepAwakeInterval) {
+                clearInterval(keepAwakeInterval);
+            }
+            
+            // Update UI
+            statusIndicator.textContent = 'Sweet dreams';
+            statusIndicator.classList.add('show');
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            body.classList.add('body-sleep');
+            body.classList.remove('body-awake');
+            timeCounter.classList.remove('pulse');
+            
+            // Stop timer
+            clearInterval(timerInterval);
+            startTime = null;
+        }
+        
+        // Update the timer display
+        function updateTimer() {
+            if (startTime) {
+                const elapsedTime = new Date() - startTime;
+                const hours = Math.floor(elapsedTime / 3600000).toString().padStart(2, '0');
+                const minutes = Math.floor((elapsedTime % 3600000) / 60000).toString().padStart(2, '0');
+                const seconds = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
+                timeCounter.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', () => {
+            keepScreenAwake();
+        });
+        
+        stopButton.addEventListener('click', () => {
+            stopKeepingAwake();
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            statusIndicator.classList.add('show');
+        });
+
+        // Handle visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && startTime !== null) {
+                // If we're meant to be awake and tab becomes visible, ensure everything is running
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                if (videoElement && videoElement.paused) {
+                    videoElement.play().catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
